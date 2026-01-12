@@ -6,24 +6,32 @@ A beautiful terminal-based user interface for viewing real-time orderbook
 data for Polymarket 15-minute prediction markets. This tool provides an
 interactive display of market depth, prices, and market information.
 
-Features:
-    - Real-time WebSocket orderbook updates with live refresh
-    - Dual orderbook display (Up/Down tokens side-by-side)
-    - Market countdown timer showing time until market resolution
-    - Price history tracking with visual indicators
-    - Configurable orderbook depth levels
-    - Color-coded display for easy reading
-    - Automatic market discovery for selected coin
+Key Features
+
+- Live WebSocket orderbook streaming with continuous refresh
+
+- Dual orderbook view for binary outcomes (Up / Down tokens)
+
+- Market resolution countdown timer
+
+- Price history tracking with directional indicators
+
+- Configurable depth levels for granular orderbook analysis
+
+- Color-coded terminal display for improved readability
+
+- Automatic discovery of active 15-minute markets per asset
 
 Usage:
-    # View ETH 15-minute market orderbook
-    python apps/orderbook_viewer.py --coin ETH
+    # Display ETH 15-minute market orderbook
+python apps/orderbook_viewer.py --coin ETH
 
-    # View BTC market with custom depth
-    python apps/orderbook_viewer.py --coin BTC --levels 10
+# Display BTC market with extended depth
+python apps/orderbook_viewer.py --coin BTC --levels 10
 
-    # Full argument list
-    python apps/orderbook_viewer.py --coin ETH --levels 5
+# Specify coin and depth explicitly
+python apps/orderbook_viewer.py --coin ETH --levels 5
+
 
 Arguments:
     --coin      Coin symbol (BTC, ETH, SOL, XRP) [default: ETH]
@@ -35,8 +43,13 @@ Prerequisites:
     - Terminal that supports ANSI color codes (most modern terminals)
 
 Note:
-    This is a read-only monitoring tool. No trades are executed.
-    Press Ctrl+C to exit the application.
+    - This is a read-only monitoring and analysis tool
+
+    - No order execution or wallet interaction is performed
+
+    - Designed for research, strategy development, and market observation
+
+    - Exit the application with Ctrl+C
 """
 
 import os
