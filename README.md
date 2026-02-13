@@ -1,12 +1,13 @@
-# Polymarket Arbitrage Bot
+# Polymarket Bot | Polymarket Trading Bot | Polymarket Arbitrage Bot
 
-Advanced Polymarket trading bot built in Python, supporting gasless trades, live WebSocket market data, and automated arbitrage and volatility strategies for short-interval prediction markets.
+Polymarket Bot, Polymarket Trading Bot, Polymarket Arbitrage Bot, Polymarket Automatic Trading Bot
+Advanced Polymarket Trading Bot (Python) – A high-performance automated trading system for Polymarket prediction markets, built in Python. Supports gasless trading, real-time WebSocket market data streaming, and fully automated arbitrage and volatility strategies optimized for short-term and high-frequency trading environments. Designed for efficient capital allocation, low-latency execution, and scalable quantitative crypto trading.
 
 ## Contact info
 
 Gmail: benjamin.bigdev@gmail.com
 
-Telegram: [@SOLBenjaminCup](https://t.me/SOLBenjaminCup)
+Telegram: [@BenjaminCup](https://t.me/BenjaminCup)
 
 X : [@benjaminccup](https://x.com/benjaminccup)
 
