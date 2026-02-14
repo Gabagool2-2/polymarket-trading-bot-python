@@ -3,6 +3,11 @@
 Polymarket Bot, Polymarket Trading Bot, Polymarket Arbitrage Bot, Polymarket Automatic Trading Bot
 Advanced Polymarket Trading Bot (Python) – A high-performance automated trading system for Polymarket prediction markets, built in Python. Supports gasless trading, real-time WebSocket market data streaming, and fully automated arbitrage and volatility strategies optimized for short-term and high-frequency trading environments. Designed for efficient capital allocation, low-latency execution, and scalable quantitative crypto trading.
 
+Status: Live trading enabled. Dashboard available at configured domain.
+
+Read article here: https://medium.com/@benjamin.bigdev/high-roi-polymarket-arbitrage-in-2026-programmatic-dutch-book-strategies-bots-and-portfolio-41372221bb79
+
+
 ## Contact info
 
 Gmail: benjamin.bigdev@gmail.com
@@ -11,202 +16,149 @@ Telegram: [@BenjaminCup](https://t.me/BenjaminCup)
 
 X : [@benjaminccup](https://x.com/benjaminccup)
 
+## Video
 
-## Key Capabilities
+https://github.com/user-attachments/assets/f06d66ee-4408-4076-91c3-5476d780cf7a
 
-- **Gasless Order Execution**  
-  Integration with the Polymarket Builder Program for zero-gas trading.
+## Strategy
 
-- **Real-Time Market Data**  
-  Live WebSocket streaming for orderbooks and market state updates.
+Core Steps (Binary Yes/No market):
 
-- **15-Minute Market Support**  
-  Native support for BTC, ETH, SOL, and XRP markets.
+Identify a directional conviction (“Yes” or “No” is undervalued).
+Execute a sizable buy of the favored outcome when its price is around $0.60 (opposite side therefore ~$0.40). In thin order books this visibly moves the favored price to $0.61–$0.62 and the opposite to $0.38–$0.39.
+Rely on other participants observing the price action (and possibly your on-chain wallet activity) to interpret it as strong conviction → retail/FOMO buying pushes the favored outcome to ~$0.70 and the opposite to ~$0.30.
+At the widened spread, buy the now-cheap opposite outcome at ~$0.30.
+Claimed P&L: $0.10 gross per share equivalent (difference created by the spread widening you helped engineer) minus ~$0.03 in assumed fees/gas → net ~$0.07 per unit.
 
-- **Strategy Framework**  
-  Modular architecture for implementing automated trading strategies.
+This is not arbitrage. It is a speculative momentum + mean-reversion hybrid that attempts to influence short-term order flow.
 
-- **Flash Crash Detection**  
-  Built-in volatility-based strategy for probability dislocations.
+Strategy is Not for sale but going to share it to customers.
 
-- **Secure Key Management**  
-  PBKDF2 (480k iterations) + Fernet encrypted private key storage.
+Pure arbitrage: when YES + NO token prices sum to less than $1.00, buy both. One token always pays out $1.00, guaranteeing profit regardless of outcome.
 
-- **Developer-Friendly API**  
-  Clean, extensible Python interface.
+```
+Example:
+YES @ $0.48 + NO @ $0.49 = $0.97 cost
+Payout = $1.00 (guaranteed)
+Profit = $0.03 per dollar (3.09%)
+```
+## Status
 
----
+Live trading enabled. Dashboard available at configured domain.
 
-## Quick Start
+## Features
 
-### Installation
+- Real-time WebSocket price monitoring (6 parallel connections, up to 1500 markets)
+- Automatic arbitrage detection and execution
+- **Low-latency async order execution** (native async HTTP with HTTP/2, parallel order signing)
+- Order monitoring with 10-second timeout and auto-cancellation
+- Market filtering by liquidity ($10k+ default) and resolution date (7 days default)
+- Web dashboard with live order visibility (HTTPS with auto SSL)
+- Slack notifications for trades
+- SOCKS5 proxy support for geo-restricted order placement
+
+## Setup
 
 ```bash
-git clone https://github.com/Benjamin-cup/Arbitrage-bot-Polymarket.git
-cd Arbitrage-bot-Polymarket
-pip install -r requirements.txt
-```
+# Clone
+git clone https://github.com/VectorPulser/polymarket-trading-bot.git
+cd rarb
 
-### Configuration
+# Install dependencies
+pip install -e .
 
-Set environment variables:
+# Configure
+cp .env.example .env
+# Edit .env with your settings
 
-```bash
-export POLY_PRIVATE_KEY=your_private_key
-export POLY_PROXY_WALLET=0xYourPolymarketProxyWallet
-```
+# Generate Polymarket API credentials
+python -c "
+from py_clob_client.client import ClobClient
+import os
+client = ClobClient('https://clob.polymarket.com', key=os.environ['PRIVATE_KEY'], chain_id=137)
+creds = client.create_or_derive_api_creds()
+print(f'POLY_API_KEY={creds.api_key}')
+print(f'POLY_API_SECRET={creds.api_secret}')
+print(f'POLY_API_PASSPHRASE={creds.api_passphrase}')
+"
 
-> **Safe Address**: Find at [polymarket.com/settings](https://polymarket.com/settings)
+# Approve Polymarket contracts (one-time setup)
+python scripts/approve_usdc.py
 
-### Run Strategy
-
-```bash
-python apps/flash_crash_runner.py --coin BTC
-```
-
-## Trading Strategies
-
-### Flash Crash Strategy
-
-Monitors 15-minute markets for sudden probability drops and executes trades automatically.
-
-```bash
-# Default settings
-python apps/flash_crash_runner.py --coin BTC
-
-# Custom parameters
-python apps/flash_crash_runner.py --coin ETH --drop 0.25 --size 10 --take-profit 0.10 --stop-loss 0.05
-```
-
-**Parameters:**
-- `--coin` - BTC, ETH, SOL, XRP (default: ETH)
-- `--drop` - Drop threshold (default: 0.30)
-- `--size` - Trade size in USDC (default: 5.0)
-- `--lookback` - Detection window in seconds (default: 10)
-- `--take-profit` - Take profit in dollars (default: 0.10)
-- `--stop-loss` - Stop loss in dollars (default: 0.05)
-
-### Orderbook Viewer
-
-Real-time orderbook visualization:
-
-```bash
-python apps/orderbook_viewer.py --coin BTC --levels 5
-```
-
-## Usage Examples
-
-### Basic Usage
-
-```python
-from src import create_bot_from_env
-import asyncio
-
-async def main():
-    bot = create_bot_from_env()
-    orders = await bot.get_open_orders()
-    print(f"Open orders: {len(orders)}")
-
-asyncio.run(main())
-```
-
-### Place Order
-
-```python
-from src import TradingBot, Config
-
-bot = TradingBot(config=Config(safe_address="0x..."), private_key="0x...")
-result = await bot.place_order(token_id="...", price=0.65, size=10.0, side="BUY")
-```
-
-### WebSocket Streaming
-
-```python
-from src.websocket_client import MarketWebSocket
-
-ws = MarketWebSocket()
-ws.on_book = lambda s: print(f"Price: {s.mid_price:.4f}")
-await ws.subscribe(["token_id"])
-await ws.run()
+# Run
+rarb run --live --realtime
 ```
 
 ## Configuration
 
-### Environment Variables
+Required environment variables:
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `POLY_PRIVATE_KEY` | Yes | Wallet private key |
-| `POLY_PROXY_WALLET` | Yes | Polymarket Proxy wallet address |
-| `POLY_BUILDER_API_KEY` | Optional | Builder Program API key (gasless) |
-| `POLY_BUILDER_API_SECRET` | Optional | Builder Program API secret |
-| `POLY_BUILDER_API_PASSPHRASE` | Optional | Builder Program passphrase |
+```bash
+# Wallet
+PRIVATE_KEY=0x...                    # Your wallet private key
+WALLET_ADDRESS=0x...                 # Your wallet address
 
-### Config File
+# Polymarket L2 API Credentials (generate with script above)
+POLY_API_KEY=...
+POLY_API_SECRET=...
+POLY_API_PASSPHRASE=...
 
-Create `config.yaml`:
+# Trading Parameters
+MIN_PROFIT_THRESHOLD=0.005           # 0.5% minimum profit
+MAX_POSITION_SIZE=100                # Max $100 per trade
+MIN_LIQUIDITY_USD=10000              # $10k minimum market liquidity
+MAX_DAYS_UNTIL_RESOLUTION=7          # Skip markets resolving later
+NUM_WS_CONNECTIONS=6                 # WebSocket connections (250 markets each)
+DRY_RUN=true                         # Set to false for live trading
 
-```yaml
-safe_address: "0xYourAddress"
-builder:
-  api_key: "your_key"
-  api_secret: "your_secret"
-  api_passphrase: "your_passphrase"
+# Dashboard (optional - omit for no auth)
+DASHBOARD_USERNAME=admin
+DASHBOARD_PASSWORD=...
 ```
 
-Load with: `TradingBot(config_path="config.yaml", private_key="0x...")`
+See `.env.example` for all available options.
 
-## Gasless Trading
+## Contract Approvals
 
-Enable gasless trading via Builder Program:
+Before trading, you must approve Polymarket's smart contracts to spend your USDC.e:
 
-1. Apply at [polymarket.com/settings?tab=builder](https://polymarket.com/settings?tab=builder)
-2. Set environment variables: `POLY_BUILDER_API_KEY`, `POLY_BUILDER_API_SECRET`, `POLY_BUILDER_API_PASSPHRASE`
+```bash
+# Run the approval script (requires PRIVATE_KEY in environment)
+python scripts/approve_usdc.py
+```
 
-The bot automatically uses gasless mode when credentials are present.
+This approves:
+- CTF Exchange
+- Neg Risk Exchange
+- Conditional Tokens
+- Neg Risk Adapter
+
+## Geo-Restrictions
+
+Polymarket blocks US IP addresses for order placement. The recommended architecture:
+
+- **Bot server (us-east-1)**: Low-latency WebSocket connection for price monitoring
+- **Proxy server (ca-central-1 Montreal)**: SOCKS5 proxy for order placement
+
+Configure the proxy in your `.env`:
+```bash
+SOCKS5_PROXY_HOST=your-proxy-ip
+SOCKS5_PROXY_PORT=1080
+SOCKS5_PROXY_USER=rarb
+SOCKS5_PROXY_PASS=your-password
+```
+
+See `infra/` for OpenTofu + Ansible deployment scripts.
 
 
 
-## Security
+## Documentation
 
-Private keys are encrypted using PBKDF2 (480,000 iterations) + Fernet symmetric encryption. Best practices:
-
-- Never commit `.env` files
-- Use a dedicated trading wallet
-- Keep encrypted key files secure (permissions: 0600)
-
-## API Reference
-
-**TradingBot**: `place_order()`, `cancel_order()`, `get_open_orders()`, `get_trades()`, `get_order_book()`, `get_market_price()`
-
-**MarketWebSocket**: `subscribe()`, `run()`, `disconnect()`, `get_orderbook()`, `get_mid_price()`
-
-**GammaClient**: `get_market_info()`, `get_current_15m_market()`, `get_all_15m_markets()`
-
-## Troubleshooting
-
-| Issue | Solution |
-|-------|----------|
-| Missing credentials | Set `POLY_PRIVATE_KEY` and `POLY_PROXY_WALLET` |
-| Invalid private key | Ensure 64 hex characters (0x prefix optional) |
-| Order failed | Check sufficient balance |
-| WebSocket errors | Verify network/firewall settings |
+See [PRD.md](PRD.md) for full product requirements and technical architecture.
 
 ## License
 
-MIT License - see [LICENSE](LICENSE) file for details.
-
-## Additional Tooling
-
-I also developed a trading bot for Polymarket using **Rust**.
-If you're interested, please contact me.
-
-<img width="1917" height="942" alt="image (21)" src="https://github.com/user-attachments/assets/08a5c962-7f8b-4097-98b6-7a457daa37c9" />
-
-
-**Disclaimer:** This software is provided for educational and research purposes only.
-Trading prediction markets involves risk, and no guarantees of profitability are implied.
-The authors assume no responsibility for financial losses incurred through use of this software.
+MIT
 
 
 
