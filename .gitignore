@@ -27,6 +27,8 @@ env/
 .coverage
 coverage.xml
 htmlcov/
+help
+project_source_dump.txt
 
 # IDE / OS files
 .vscode/

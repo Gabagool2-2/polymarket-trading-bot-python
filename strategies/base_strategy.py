@@ -53,7 +53,7 @@ from typing import Optional, Dict, List
 from lib.terminal_utils import LogBuffer, log
 from lib.market_manager import MarketManager, MarketInfo
 from lib.price_tracker import PriceTracker
-from lib.position_manager import PositionManager
+from lib.position_manager import PositionManager , Position
 from src.bot import TradingBot
 from src.websocket_client import OrderbookSnapshot
 

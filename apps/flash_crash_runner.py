@@ -47,14 +47,12 @@ Risk Warning:
 
 import os
 import sys
+import re
 import asyncio
 import argparse
 import logging
+logger = logging.getLogger(__name__)
 from pathlib import Path
-
-# Suppress noisy logs
-logging.getLogger("src.websocket_client").setLevel(logging.WARNING)
-logging.getLogger("src.bot").setLevel(logging.WARNING)
 
 # Auto-load .env file
 from dotenv import load_dotenv
@@ -121,8 +119,17 @@ def main():
 
     # Enable debug logging if requested
     if args.debug:
-        logging.basicConfig(level=logging.DEBUG)
+        logging.basicConfig(
+            level=logging.DEBUG,
+            format="%(asctime)s [%(levelname)s] %(name)s: %(message)s"
+        )
         logging.getLogger("src.websocket_client").setLevel(logging.DEBUG)
+    else:
+        logging.basicConfig(
+            level=logging.INFO,
+            format="%(message)s"
+        )
+        logging.getLogger("src.websocket_client").setLevel(logging.WARNING)
 
     # Check environment
     private_key = os.environ.get("POLY_PRIVATE_KEY")
@@ -132,14 +139,25 @@ def main():
         print(f"{Colors.RED}Error: POLY_PRIVATE_KEY and POLY_PROXY_WALLET must be set{Colors.RESET}")
         print("Set them in .env file or export as environment variables")
         sys.exit(1)
+    
+    # Validate private key format
+    if not re.fullmatch(r"0x[a-fA-F0-9]{64}", private_key):
+        print(f"{Colors.RED}⚠ Invalid private key format.{Colors.RESET}")
+        print("Must be 0x + 64 hexadecimal characters.")
+        sys.exit(1)
 
     # Create bot
     config = Config.from_env()
-    bot = TradingBot(config=config, private_key=private_key)
-
-    if not bot.is_initialized():
-        print(f"{Colors.RED}Error: Failed to initialize bot{Colors.RESET}")
+    try:
+        bot = TradingBot(config=config, private_key=private_key)
+    except ValueError as e:
+        print(f"{Colors.RED}⚠ Configuration Error: {e}{Colors.RESET}")
+        print("Check your POLY_PRIVATE_KEY in .env")
         sys.exit(1)
+    except Exception as e:
+        print(f"{Colors.RED}⚠ Unexpected initialization error: {e}{Colors.RESET}")
+        sys.exit(1)
+
 
     # Create strategy config
     strategy_config = FlashCrashConfig(
@@ -171,12 +189,16 @@ def main():
     try:
         asyncio.run(strategy.run())
     except KeyboardInterrupt:
-        print("\nInterrupted")
+        print("\nInterrupted by user")
     except Exception as e:
-        print(f"\n{Colors.RED}Error: {e}{Colors.RESET}")
-        import traceback
-        traceback.print_exc()
+        if args.debug:
+            logger.exception("Unhandled runtime error")
+        else:
+            print(f"\n{Colors.RED} Runtime Error: {e}{Colors.RESET}")
+            print("Run with --debug to see full traceback.")
         sys.exit(1)
+    finally:
+        print("Shutting down...")
 
 
 if __name__ == "__main__":
