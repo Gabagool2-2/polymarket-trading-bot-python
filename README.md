@@ -10,9 +10,11 @@ Read article here: https://medium.com/@benjamin.bigdev/high-roi-polymarket-arbit
 
 ## Contact info
 
-
+Gmail: benjamin.bigdev@gmail.com
 
 Telegram: [@BenjaminCup](https://t.me/BenjaminCup)
+
+X : [@benjaminccup](https://x.com/benjaminccup)
 
 
 ## Video
