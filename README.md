@@ -23,12 +23,13 @@ _Read the [Medium article](https://medium.com/@benjamin.bigdev/high-roi-polymark
 10. [Documentation](#documentation)
 11. [License](#license)
 
-Gmail: benjamin.bigdev@gmail.com
+---
+
+## Contact
 
 - Telegram: [@BenjaminCup](https://t.me/BenjaminCup)
 
-X : [@benjaminccup](https://x.com/benjaminccup)
-
+---
 
 ## Demo Video
 
