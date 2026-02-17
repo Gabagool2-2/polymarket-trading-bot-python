@@ -33,7 +33,6 @@ _Read the [Medium article](https://medium.com/@benjamin.bigdev/high-roi-polymark
 
 ## Demo Video
 
-Watch the video demonstration:  
 https://github.com/user-attachments/assets/f06d66ee-4408-4076-91c3-5476d780cf7a
 
 ---
