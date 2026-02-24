@@ -62,7 +62,7 @@ Live trading enabled. Dashboard available at configured domain.
 
 ```bash
 # Clone
-git clone https://github.com/VectorPulser/polymarket-trading-bot-python.git
+git clone https://github.com/Gabagool2-2/polymarket-trading-bot-python.git
 cd rarb
 
 # Install dependencies
