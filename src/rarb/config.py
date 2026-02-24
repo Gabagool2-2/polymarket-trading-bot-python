@@ -65,6 +65,110 @@ class Settings(BaseSettings):
         ge=1,
         le=365,
     )
+
+    # --- Risk management (5-min / short-term markets) ---
+    risk_per_trade_pct: float = Field(
+        default=0.8,
+        description="Max risk per trade as % of account (0.8 = 0.8%). Use 0.5-1.5% for 5-min markets.",
+        ge=0.1,
+        le=5.0,
+    )
+    stop_loss_pct: float = Field(
+        default=5.0,
+        description="Fixed %% stop distance from entry (e.g. 5 = 5%%). Entry price * (1 - stop_pct/100).",
+        ge=1.0,
+        le=20.0,
+    )
+    time_stop_seconds: int = Field(
+        default=120,
+        description="Time-based stop: do not hold position longer than this (seconds). Avoids dead positions near expiry.",
+        ge=30,
+        le=300,
+    )
+    position_cap_pct: float = Field(
+        default=25.0,
+        description="Max position size as %% of account (e.g. 25 = 25%%). Caps shares * entry even when risk formula allows more.",
+        ge=5.0,
+        le=100.0,
+    )
+    take_profit_pct_to_one: float = Field(
+        default=55.0,
+        description="TP1: sell this %% of 'remaining to 1' (e.g. 55 = sell first portion at entry + 55%% of (1 - entry)).",
+        ge=30.0,
+        le=95.0,
+    )
+    take_profit_first_portion_pct: float = Field(
+        default=65.0,
+        description="%% of position to sell at TP1 (e.g. 65 = sell 65%% at first target, rest at TP2 or stop).",
+        ge=20.0,
+        le=90.0,
+    )
+    consecutive_losses_pause: int = Field(
+        default=5,
+        description="Pause trading for consecutive_loss_pause_minutes after this many consecutive losing trades.",
+        ge=2,
+        le=20,
+    )
+    consecutive_loss_pause_minutes: int = Field(
+        default=30,
+        description="Minutes to pause after consecutive loss limit hit.",
+        ge=5,
+        le=120,
+    )
+    session_drawdown_pct: float = Field(
+        default=4.0,
+        description="Session drawdown %% (vs session start balance) to pause trading for session_pause_minutes.",
+        ge=1.0,
+        le=20.0,
+    )
+    session_pause_minutes: int = Field(
+        default=60,
+        description="Minutes to pause after session drawdown limit hit.",
+        ge=10,
+        le=240,
+    )
+    daily_drawdown_pct: float = Field(
+        default=8.0,
+        description="Daily drawdown %% (vs daily start balance) to stop trading for the day.",
+        ge=2.0,
+        le=25.0,
+    )
+    monthly_drawdown_pct: float = Field(
+        default=20.0,
+        description="Monthly drawdown %% to halt bot (manual review required).",
+        ge=5.0,
+        le=50.0,
+    )
+    volatility_skip_1min_std: Optional[float] = Field(
+        default=0.028,
+        description="Skip new entries if 1-min price std dev exceeds this (e.g. 0.028). None = disabled.",
+        ge=0.01,
+        le=0.1,
+    )
+    min_seconds_until_resolution: int = Field(
+        default=90,
+        description="Do not enter if less than this many seconds until market resolution.",
+        ge=0,
+        le=600,
+    )
+    min_volume_60s_usd: Optional[float] = Field(
+        default=None,
+        description="Skip if last 60s volume < this (USD). None = disabled. Requires volume data.",
+        ge=0.0,
+    )
+    max_zscore_3min: Optional[float] = Field(
+        default=2.5,
+        description="Skip if |price - 3min mean| > this many std devs (mean reversion filter). None = disabled.",
+        ge=1.5,
+        le=5.0,
+    )
+    max_rsi_overbought: Optional[float] = Field(
+        default=80.0,
+        description="Skip momentum long if RSI(8) > this (overbought). None = disabled.",
+        ge=70.0,
+        le=95.0,
+    )
+
     num_ws_connections: int = Field(
         default=6,
         description="Number of WebSocket connections for scanner (each handles 250 markets)",

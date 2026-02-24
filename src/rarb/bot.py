@@ -270,6 +270,10 @@ class RealtimeArbitrageBot:
         self._cached_balance: Decimal = Decimal("0")
         self._balance_lock = asyncio.Lock()
 
+        # Risk management (position sizing, circuit breakers, pre-trade filters)
+        from rarb.risk import RiskManager
+        self._risk_manager = RiskManager()
+
     async def _on_markets_loaded(self, markets: list) -> None:
         """
         Pre-cache neg_risk status for all tokens when markets are loaded.
@@ -341,6 +345,7 @@ class RealtimeArbitrageBot:
 
     async def _on_arbitrage(self, alert) -> None:
         """Handle arbitrage alert from scanner."""
+        from datetime import timezone as tz
         from rarb.api.models import ArbitrageOpportunity
         from rarb.scanner.realtime_scanner import ArbitrageAlert
 
@@ -348,6 +353,32 @@ class RealtimeArbitrageBot:
         settings = get_settings()
 
         self.stats.opportunities_found += 1
+
+        # --- Risk: pause and circuit breakers ---
+        if self._risk_manager.is_paused():
+            log.debug("Skipping arbitrage - risk pause active", until=str(self._risk_manager.pause_until_utc()))
+            return
+
+        async with self._balance_lock:
+            current_balance = self._cached_balance
+
+        allowed, reason = self._risk_manager.check_circuit_breakers(current_balance)
+        if not allowed:
+            log.warning("Skipping arbitrage - circuit breaker", reason=reason)
+            return
+
+        # --- Pre-trade filters (time to resolution, optional volume/zscore/RSI) ---
+        seconds_until_resolution: Optional[float] = None
+        if alert.market.end_date:
+            now = datetime.now(tz.utc)
+            end = alert.market.end_date
+            if end.tzinfo is None:
+                end = end.replace(tzinfo=tz.utc)
+            seconds_until_resolution = (end - now).total_seconds()
+        filter_result = self._risk_manager.pre_trade_filters(seconds_until_resolution=seconds_until_resolution)
+        if not filter_result.allowed:
+            log.info("Skipping arbitrage - pre-trade filter", reason=filter_result.reason)
+            return
 
         # Convert alert to opportunity
         # Limit trade size to available liquidity on BOTH sides
@@ -382,7 +413,26 @@ class RealtimeArbitrageBot:
             asyncio.create_task(self._save_near_miss_alert(alert, min_required_size))
             return
 
-        trade_size = min(available_size, max_position)
+        # Risk-based position sizing: cap by risk_per_trade and position_cap_pct
+        risk_shares, risk_usd = self._risk_manager.position_size(
+            current_balance, alert.yes_ask
+        )
+        max_position_shares = (max_position / alert.combined_cost).quantize(
+            Decimal("1"), rounding="ROUND_DOWN"
+        )
+        trade_size = min(
+            available_size,
+            risk_shares,
+            max_position_shares,
+        ).quantize(Decimal("1"), rounding="ROUND_DOWN")
+        if trade_size < min_required_size:
+            log.warning(
+                "Skipping arbitrage - risk-based size below minimum",
+                market=alert.market.question[:40],
+                risk_shares=float(risk_shares),
+                min_required=float(min_required_size),
+            )
+            return
 
         # Use execution lock for the ENTIRE balance check + deduct + execute flow
         # This prevents race conditions where multiple opportunities pass balance check simultaneously
@@ -452,13 +502,14 @@ class RealtimeArbitrageBot:
                 if result.status == ExecutionStatus.FILLED:
                     self.stats.trades_successful += 1
                     self.stats.total_profit += result.expected_profit
-
+                    self._risk_manager.record_trade(True, result.expected_profit)
                     log.info(
                         "Trade executed successfully",
                         market=alert.market.question[:30],
                         profit=f"${float(result.expected_profit):.2f}",
                     )
                 else:
+                    self._risk_manager.record_trade(False, Decimal("0"))
                     # Trade failed/partial - refresh actual balance from chain
                     # Don't blindly restore as that causes cache inflation
                     new_balance = await self._refresh_balance()
@@ -469,6 +520,7 @@ class RealtimeArbitrageBot:
                     )
 
             except Exception as e:
+                self._risk_manager.record_trade(False, Decimal("0"))
                 # Exception - refresh actual balance from chain
                 new_balance = await self._refresh_balance()
                 log.error(
