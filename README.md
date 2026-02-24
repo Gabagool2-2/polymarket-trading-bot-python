@@ -14,6 +14,12 @@ A high-performance, automated trading system for [Polymarket](https://polymarket
 | **X (Twitter)** | [@benjaminccup](https://x.com/benjaminccup) |
 
 ---
+
+<img width="1420" height="809" alt="image" src="https://github.com/user-attachments/assets/edeea17f-ceb4-449a-a961-5da5e8abbd87" />
+
+<img width="1443" height="894" alt="image" src="https://github.com/user-attachments/assets/3b059826-5f54-481a-a684-e5a8c4e0fabc" />
+
+
 **Status:** Live trading supported. Optional web dashboard available at configured domain.
 
 ---
