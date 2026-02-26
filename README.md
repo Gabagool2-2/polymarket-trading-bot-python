@@ -25,7 +25,6 @@ A high-performance, automated trading system for [Polymarket](https://polymarket
 ---
 ## Screenshot
 
-<img width="1896" height="988" alt="polymarket-trading-photo" src="https://github.com/user-attachments/assets/9e5ad5c7-dc73-4ee6-87cd-b22d714e23e6" />
 
 <img width="1420" height="809" alt="image" src="https://github.com/user-attachments/assets/edeea17f-ceb4-449a-a961-5da5e8abbd87" />
 
