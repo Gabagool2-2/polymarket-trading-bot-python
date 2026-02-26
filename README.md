@@ -19,8 +19,6 @@ A high-performance, automated trading system for [Polymarket](https://polymarket
 
 
 
-https://github.com/user-attachments/assets/d8a51c63-8122-478c-8360-c160b9c88980
-
 
 
 
