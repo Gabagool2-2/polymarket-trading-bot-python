@@ -1,6 +1,6 @@
-# Polymarket Bot | Polymarket Trading Bot | Polymarket Arbitrage Bot
+# Polymarket Bot | Polymarket Trading Bot | Polymarket Trading Bot - 5 min market
 
-Polymarket Bot, Polymarket Trading Bot, Polymarket Arbitrage Bot, Polymarket Automatic Trading Bot
+Polymarket Bot, Polymarket Trading Bot, Polymarket 5min market Trading Bot, Polymarket Automatic Trading Bot
 
 A high-performance, automated trading system for [Polymarket](https://polymarket.com) prediction markets. Built in Python with real-time WebSocket streaming, gasless L2 execution, and a risk-management framework suited to short-term and high-frequency environments.
 
